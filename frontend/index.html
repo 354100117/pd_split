@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PD 推理实验面板</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div>
+        <h1>分布式大模型推理实验面板</h1>
+        <p class="sub">PD 分离 / 单节点 / 全节点流水线 · 实验可视化与日志输出</p>
+      </div>
+      <div class="badge" id="modeBadge">当前模式：-</div>
+    </header>
+
+    <section class="tabs">
+      <button class="tab" data-mode="pd_split">PD 分离流水线</button>
+      <button class="tab" data-mode="single_node">单节点推理</button>
+      <button class="tab" data-mode="full_pipeline">全节点流水线</button>
+    </section>
+
+    <section class="panel" id="panel-pd_split">
+      <div class="panel-header">
+        <h2>PD 分离流水线</h2>
+        <p>Prefill 与 Decode 分离，阶段隔离减少互相干扰，支持 Prefill 微批次。</p>
+      </div>
+      <div class="panel-body" id="panelBody-pd_split">
+        <div class="field inline">
+          <label for="batchSizeInput">Prefill 批量大小</label>
+          <input id="batchSizeInput" type="number" min="1" value="4" />
+          <button id="batchApply" class="inline-btn">应用</button>
+        </div>
+        <div class="field inline">
+          <label for="decodeBatchSizeInput">Decode 批量大小</label>
+          <input id="decodeBatchSizeInput" type="number" min="1" value="1" />
+          <label for="decodeBatchTimeoutInput">Decode 等待(ms)</label>
+          <input id="decodeBatchTimeoutInput" type="number" min="1" value="10" />
+          <label for="decodeWorkersInput">Decode Workers</label>
+          <input id="decodeWorkersInput" type="number" min="1" value="1" />
+        </div>
+        <div class="hint" id="batchHint"></div>
+        <div class="layout-title">Prefill 层划分</div>
+        <div class="table" id="pdPrefillLayout"></div>
+        <div class="layout-title">Decode 层划分</div>
+        <div class="table" id="pdDecodeLayout"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-single_node">
+      <div class="panel-header">
+        <h2>单节点推理（Baseline）</h2>
+        <p>单节点完成 Prefill + Decode，不使用 PD 分离与跨节点流水线。</p>
+      </div>
+      <div class="panel-body" id="panelBody-single_node">
+        <div class="field">
+          <label for="singleNodeSelect">节点选择</label>
+          <select id="singleNodeSelect"></select>
+        </div>
+        <div class="hint" id="singleNodeHint"></div>
+        <div class="layout-title">层划分</div>
+        <div class="table" id="singleNodeLayout"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-full_pipeline">
+      <div class="panel-header">
+        <h2>全节点流水线</h2>
+        <p>所有节点参与同一条流水线，不区分 Prefill / Decode。</p>
+      </div>
+      <div class="panel-body" id="panelBody-full_pipeline">
+        <div class="field">
+          <label for="fullPipelineStrategy">切分策略</label>
+          <select id="fullPipelineStrategy">
+            <option value="mem">显存容量</option>
+            <option value="compute">算力</option>
+            <option value="bandwidth">显存带宽</option>
+            <option value="uniform">均匀</option>
+          </select>
+        </div>
+        <div class="field inline">
+          <label for="fullBatchSizeInput">Prefill 批量大小</label>
+          <input id="fullBatchSizeInput" type="number" min="1" value="4" />
+          <label for="fullBatchTimeoutInput">Prefill 等待(ms)</label>
+          <input id="fullBatchTimeoutInput" type="number" min="1" value="20" />
+          <button id="fullBatchApply" class="inline-btn">应用</button>
+        </div>
+        <div class="field inline">
+          <label for="fullDecodeBatchSizeInput">Decode 批量大小</label>
+          <input id="fullDecodeBatchSizeInput" type="number" min="1" value="1" />
+          <label for="fullDecodeBatchTimeoutInput">Decode 等待(ms)</label>
+          <input id="fullDecodeBatchTimeoutInput" type="number" min="1" value="10" />
+          <label for="fullDecodeWorkersInput">Decode Workers</label>
+          <input id="fullDecodeWorkersInput" type="number" min="1" value="1" />
+        </div>
+        <div class="hint" id="fullBatchHint"></div>
+        <div class="field">
+          <label for="fullPipelineNodes">参与节点</label>
+          <select id="fullPipelineNodes" multiple></select>
+          <button id="fullPipelineApply" class="inline-btn">应用</button>
+        </div>
+        <div class="hint" id="fullPipelineHint"></div>
+        <div class="table" id="fullPipelineLayout"></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>请求输入</h3>
+        <div class="field">
+          <label>当前模型</label>
+          <div class="value" id="modelNameDisplay">-</div>
+        </div>
+        <div class="field">
+          <label>输入模式</label>
+          <select id="batchMode">
+            <option value="single">单条请求</option>
+            <option value="line">按行拆分（批量）</option>
+            <option value="json">JSON 数组</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>最大新 token</label>
+          <input id="maxNewTokens" type="number" min="1" value="32" />
+        </div>
+        <textarea id="promptInput" placeholder="输入 prompt（批量模式下每行一个）"></textarea>
+        <button id="runBtn">生成 / Run</button>
+        <div class="hint">模式切换需重启服务，当前仅展示对应模式页面。</div>
+      </div>
+
+      <div class="card">
+        <h3>系统状态</h3>
+        <div class="status-grid">
+          <div>
+            <div class="label">进行中请求</div>
+            <div class="value" id="inflight">0</div>
+          </div>
+          <div>
+            <div class="label">已完成请求</div>
+            <div class="value" id="completedRequests">0</div>
+          </div>
+          <div>
+            <div class="label">Prefill 队列</div>
+            <div class="value" id="prefillQueue">0</div>
+          </div>
+          <div>
+            <div class="label">Decode 队列</div>
+            <div class="value" id="decodeQueue">0</div>
+          </div>
+          <div>
+            <div class="label">Prefill 活动</div>
+            <div class="value" id="prefillActive">0</div>
+          </div>
+          <div>
+            <div class="label">Decode 活动</div>
+            <div class="value" id="decodeActive">0</div>
+          </div>
+        </div>
+        <div class="log-links">
+          <a id="logRequest" href="#">request.log</a>
+          <a id="logStage" href="#">stage.log</a>
+          <a id="logPipeline" href="#">pipeline.log</a>
+          <a id="logSystem" href="#">system.log</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>性能概览</h3>
+        <div class="status-grid">
+          <div>
+            <div class="label">p50 延迟 (ms)</div>
+            <div class="value" id="p50">-</div>
+          </div>
+          <div>
+            <div class="label">p95 延迟 (ms)</div>
+            <div class="value" id="p95">-</div>
+          </div>
+          <div>
+            <div class="label">p99 延迟 (ms)</div>
+            <div class="value" id="p99">-</div>
+          </div>
+          <div>
+            <div class="label">平均 TPS（端到端）</div>
+            <div class="value" id="avgTps">-</div>
+          </div>
+          <div>
+            <div class="label">系统 TPS（仅计算）</div>
+            <div class="value" id="avgComputeTps">-</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="analysis">
+      <div class="card summary-card">
+        <h3>实验摘要</h3>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <div class="label">完成请求</div>
+            <div class="value" id="summaryCompleted">0</div>
+          </div>
+          <div class="summary-item">
+            <div class="label">平均总延迟</div>
+            <div class="value" id="summaryAvgLatency">-</div>
+          </div>
+          <div class="summary-item">
+            <div class="label">平均 TPS（端到端）</div>
+            <div class="value" id="summaryAvgTps">-</div>
+          </div>
+          <div class="summary-item">
+            <div class="label">平均 TPS（仅计算）</div>
+            <div class="value" id="summaryAvgComputeTps">-</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>请求时间线</h3>
+        <div class="timeline-legend">序号：S=提交顺序，F=完成顺序；Decode 列显示占总延迟比例；乱序完成将高亮。</div>
+        <div class="table" id="timelineTable"></div>
+      </div>
+      <div class="card">
+        <h3>结果输出</h3>
+        <div id="resultList" class="result"></div>
+      </div>
+      <div class="card">
+        <h3>排序与流水线语义</h3>
+        <div class="ordering-hints">
+          <div><strong>提交顺序 S</strong>：请求进入系统的时间顺序（arrival）。</div>
+          <div><strong>完成顺序 F</strong>：请求完成并返回的顺序（finish）。</div>
+          <div><strong>乱序完成</strong>：S 与 F 不一致时，高亮提示。</div>
+          <div><strong>Decode 占比</strong>：Decode / Total 的百分比，用以定位瓶颈。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>节点显存使用</h3>
+      <div id="gpuList" class="gpu-list"></div>
+    </section>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{"type": "stage_event", "request_id": "req-000001", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node2", "event": "start", "timestamp_ns": 1769786486509320360}
+{"type": "stage_event", "request_id": "req-000001", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node3", "event": "end", "timestamp_ns": 1769786491242187251}
+{"type": "stage_event", "request_id": "req-000001", "experiment_mode": "full_pipeline", "stage": "decode", "node": "node2", "event": "start", "timestamp_ns": 1769786491246155061}
+{"type": "stage_event", "request_id": "req-000002", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node2", "event": "start", "timestamp_ns": 1769786491263978974}
+{"type": "stage_event", "request_id": "req-000003", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node2", "event": "start", "timestamp_ns": 1769786491264139715}
+{"type": "stage_event", "request_id": "req-000004", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node2", "event": "start", "timestamp_ns": 1769786491264242022}

@@ -1,0 +1,9 @@
+{"type": "stage_event", "request_id": "req-000001", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node1", "event": "start", "timestamp_ns": 1769789709668973004}
+{"type": "stage_event", "request_id": "req-000001", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node5", "event": "end", "timestamp_ns": 1769789710000326307}
+{"type": "stage_event", "request_id": "req-000001", "experiment_mode": "full_pipeline", "stage": "decode", "node": "node1", "event": "start", "timestamp_ns": 1769789710001880941}
+{"type": "stage_event", "request_id": "req-000002", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node1", "event": "start", "timestamp_ns": 1769789710022573666}
+{"type": "stage_event", "request_id": "req-000003", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node1", "event": "start", "timestamp_ns": 1769789710022766824}
+{"type": "stage_event", "request_id": "req-000004", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node1", "event": "start", "timestamp_ns": 1769789710022865450}
+{"type": "stage_event", "request_id": "req-000002", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node5", "event": "end", "timestamp_ns": 1769789710558717298}
+{"type": "stage_event", "request_id": "req-000003", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node5", "event": "end", "timestamp_ns": 1769789710558913591}
+{"type": "stage_event", "request_id": "req-000004", "experiment_mode": "full_pipeline", "stage": "prefill", "node": "node5", "event": "end", "timestamp_ns": 1769789710559026362}
